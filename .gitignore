@@ -1,0 +1,6 @@
+/target
+
+# keep the folder
+!to-build/.gitkeep
+# ignore the contents
+to-build/*
