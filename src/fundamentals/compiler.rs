@@ -8,6 +8,7 @@ pub trait Compiler {
 }
 pub struct GCC;
 impl Compiler for GCC {
+    /// input
     fn compile(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>{
         let filepaths: Vec<String> = artifacts
         .iter()
@@ -16,17 +17,15 @@ impl Compiler for GCC {
 
         let flag:&str = "-c"; // compile to object file
 
+        // combine all args
         let all_args: Vec<&str> = [extra_flags, flag].into_iter()
-        // chain just appends iterators
         .chain(filepaths.iter().map(|s| s.as_str())) 
         .collect();
+
         // Log the command
         log_debug!("Running command: gcc {}", all_args.join(" "));
 
         let output = Command::new("gcc")
-            // .args([extra_flags])
-            // .args([flag])
-            // .args(filepaths)
             .args(&all_args)
             .output()
             .map_err(|e| format!("Failed to run gcc: {e}"))?;

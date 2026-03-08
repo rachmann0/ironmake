@@ -1,3 +1,4 @@
+mod graph;
 mod fundamentals;
 mod utils;
 
@@ -6,10 +7,12 @@ use crate::fundamentals::artifact::Artifact;
 // ? This path always starts from the crate root.
 use crate::fundamentals::compiler::{GCC}; 
 use crate::fundamentals::build_context::{Build, Modes};
-use crate::utils::logger::{init_logger, global_logger, LogLevel};
+use crate::utils::logger::{init_logger, LogLevel, parse_log_level};
+use crate::utils::fs::{recursive_list_files};
 
 // ? std
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::env;
 
 /*
 
@@ -31,10 +34,17 @@ use std::path::PathBuf;
 */
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    println!("Running From: {}", args[0]);
+
+    let path_list:Vec<PathBuf> = recursive_list_files(Path::new(".")).expect("failed to list files");
+    for path in path_list  {
+        println!("{}", path.display());
+    }
+
     // ! initialize Logger
-    // init_logger(LogLevel::Trace);
-    init_logger(LogLevel::Off);
-    // init_logger(LogLevel::Debug);
+    let log_level:LogLevel = parse_log_level();
+    init_logger(log_level);
 
     log_info!("Build started");
 
@@ -61,6 +71,7 @@ fn main() {
         eprintln!("Compilation failed:\n{}", error);
     }
     }
+
 
     // match build_context1.link(&artifacts) {
     // Ok(output) => {

@@ -176,3 +176,27 @@ macro_rules! log_trace {
         }
     };
 }
+
+// ! env variables
+
+pub fn parse_log_level() -> LogLevel {
+    let mut args = std::env::args().skip(1);
+
+    while let Some(arg) = args.next() {
+        if arg == "--log" {
+            if let Some(level) = args.next() {
+                return match level.as_str() {
+                    "off" => LogLevel::Off,
+                    "error" => LogLevel::Error,
+                    "warn"  => LogLevel::Warn,
+                    "info"  => LogLevel::Info,
+                    "debug" => LogLevel::Debug,
+                    "trace" => LogLevel::Trace,
+                    _ => LogLevel::Off,
+                };
+            }
+        }
+    }
+
+    LogLevel::Off
+}
