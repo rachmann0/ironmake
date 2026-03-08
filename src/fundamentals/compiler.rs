@@ -1,59 +1,50 @@
 use std::process::Command;
-use crate::fundamentals::file::{File};
+use crate::fundamentals::artifact::{Artifact};
 
 pub trait Compiler {
-    fn compile(&self, file: &[&str])->&str;
-    fn link(&self);
+    fn compile(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>;
+    fn link(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>;
 }
 pub struct GCC;
 impl Compiler for GCC {
-    fn compile(&self, files: &[&str])->&str{
-        // fn compile(source: &str, output: &str) {
-        // Command::new("gcc")
-        // .args([source, "-o", output])
-        // .status()
-        // .expect("gcc failed");
-        // }
+    fn compile(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>{
+        let filepaths: Vec<String> = artifacts
+        .iter()
+        .map(|a| a.path.to_string_lossy().into())
+        .collect();
 
-        // println!("gcc compiling {}", file);
-        // let status = Command::new("gcc")
-        //     .args(["main.c", "-o", "main"])
-        //     .status()
-        //     .expect("failed to execute gcc");
-
-        // if !status.success() {
-        //     panic!("Compilation failed");
-        // }
-
-        let flags:&str = "-c"; // compile to object file
-        let output_path:&str = "main.o"; // compile to object file
+        let flag:&str = "-c"; // compile to object file
 
         let output = Command::new("gcc")
-        .args([flags])
-        .args(files)
-        .args(["-o", output_path])
-        .output()
-        .expect("failed to run gcc");
+            .args([extra_flags])
+            .args([flag])
+            .args(filepaths)
+            .output()
+            .map_err(|e| format!("Failed to run gcc: {e}"))?;
 
-        println!("{}", String::from_utf8_lossy(&output.stdout));
-        eprintln!("{}", String::from_utf8_lossy(&output.stderr));
-
-        return output_path;
+        if output.status.success() {
+            Ok(String::from_utf8_lossy(&output.stdout).to_string())
+        } else {
+            Err(String::from_utf8_lossy(&output.stderr).to_string())
+        }
     }
 
-    fn link(&self) {
+    fn link(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>{
         println!("gcc linking");
+        dbg!(artifacts);
+        dbg!(extra_flags);
+        Ok("gcc linking".to_string())
     }
 }
 
-pub struct Clang;
-impl Compiler for Clang {
-    fn compile(&self, files: &[&str])->&str {
-        println!("clang compiling {:?}", files);
-        return "";
-    }
+// pub struct Clang;
+// impl Compiler for Clang {
+//     fn compile(&self, artifacts: &[Artifact])->Result<String, String> {
+//         println!("clang compiling {:#?}", artifacts);
+//         Ok("Ok".to_string())
+//     }
 
-    fn link(&self) {
-        println!("clang linking");
-    }
-}
+//     fn link(&self) {
+//         println!("clang linking");
+//     }
+// }

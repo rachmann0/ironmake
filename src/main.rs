@@ -1,11 +1,12 @@
 mod fundamentals;
-// crate:: avoids ambiguity (comes from current crate, not dependancy)
-// This path always starts from the crate root.
+use crate::fundamentals::artifact::Artifact;
+// ? crate:: avoids ambiguity (comes from current crate, not dependancy)
+// ? This path always starts from the crate root.
 use crate::fundamentals::compiler::{GCC}; 
-use crate::fundamentals::build_context::{Build};
+use crate::fundamentals::build_context::{Build, Modes};
 
-// std
-use std::process::Command;
+// ? std
+use std::path::PathBuf;
 
 /*
 
@@ -15,6 +16,7 @@ use std::process::Command;
 */
 
 /*
+
 ? The 6 Core Build Primitives
 1.Compile
 2.Link
@@ -23,50 +25,34 @@ use std::process::Command;
 5.File Discovery
 6.Configuration / Target Selection
 
-? Optimization Levels
-GCC optimizes code at compile time, which takes extra time.
-Lower optimization = faster compile.
-
--O0 → No optimization. Fastest compile, bigger binary, easy to debug.
--O1, -O2, -O3 → Increasing optimizations → slower compile, smaller/faster runtime code.
--Os → Optimize for size.
--Ofast → Aggressive optimizations (may break strict standard compliance).
-
-Tip: For development builds, use -O0 to speed up compilation.
-
 */
 
 fn main() {
-    // let status = Command::new("gcc")
-    //     .args(["math.c","main.c", "-o", "main"])
-    //     .status()
-    //     .expect("failed to execute gcc");
-
-    // if !status.success() {
-    //     panic!("Compilation failed");
-    // }
-
     let files:[&str;2] = ["main.c", "math.c"];
-    // let files:[&str;1] = ["main.c"];
 
-    let flags:&str = "-c"; // compile to object file
-    let output_path:&str = "main.o"; // compile to object file
+    let build_context1:Build<GCC> = Build { compiler: GCC, mode: Modes::O0};
+    let artifacts:Vec<Artifact> =
+    files.iter()
+    .map(|f| Artifact::new(PathBuf::from(f), None))
+    .collect();
+    // build_context1.compile(&artifacts).expect("Compile Failed");
+    match build_context1.compile(&artifacts) {
+    Ok(output) => {
+        println!("Compilation succeeded:\n{}", output);
+    }
+    Err(error) => {
+        eprintln!("Compilation failed:\n{}", error);
+    }
+    }
 
-    let output = Command::new("gcc")
-    .args([flags])
-    .args(["-O0"])
-    .args(files)
-    // .args(["-o", output_path])
-    .output()
-    .expect("failed to run gcc");
-
-    println!("{}", String::from_utf8_lossy(&output.stdout));
-    eprintln!("{}", String::from_utf8_lossy(&output.stderr));
-
-
-
-    // let build_context1:Build<GCC> = Build { compiler: GCC };
-    // build_context1.compile(&files);
+    // match build_context1.link(&artifacts) {
+    // Ok(output) => {
+    //     println!("Linking succeeded:\n{}", output);
+    // }
+    // Err(error) => {
+    //     eprintln!("Linking failed:\n{}", error);
+    // }
+    // }
 
 
 }

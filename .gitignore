@@ -4,3 +4,6 @@
 !to-build/.gitkeep
 # ignore the contents
 to-build/*
+
+!logs/.gitkeep
+logs/*
