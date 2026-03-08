@@ -1,6 +1,6 @@
 use std::process::Command;
 use crate::fundamentals::artifact::{Artifact};
-use crate::utils::logger::{global_logger};
+use crate::log_debug;
 
 pub trait Compiler {
     fn compile(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>;
@@ -9,8 +9,6 @@ pub trait Compiler {
 pub struct GCC;
 impl Compiler for GCC {
     fn compile(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>{
-        let mut logger = global_logger().lock().unwrap();
-
         let filepaths: Vec<String> = artifacts
         .iter()
         .map(|a| a.path.to_string_lossy().into())
@@ -23,7 +21,7 @@ impl Compiler for GCC {
         .chain(filepaths.iter().map(|s| s.as_str())) 
         .collect();
         // Log the command
-        logger.info(&format!("Running command: gcc {}", all_args.join(" ")));
+        log_debug!("Running command: gcc {}", all_args.join(" "));
 
         let output = Command::new("gcc")
             // .args([extra_flags])

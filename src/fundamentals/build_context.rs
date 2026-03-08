@@ -24,6 +24,7 @@ Tip: For development builds, use -O0 to speed up compilation.
 
 */
 
+#[allow(dead_code)]
 pub enum Modes {
     O0,
     O1,

@@ -31,18 +31,19 @@ use std::path::PathBuf;
 */
 
 fn main() {
-    // initialize once
-    init_logger("build.log", LogLevel::Info);
+    // ! initialize Logger
+    // init_logger(LogLevel::Trace);
+    init_logger(LogLevel::Off);
+    // init_logger(LogLevel::Debug);
 
-    // logger.info("Build started");
-    // logger.debug("This debug message will be skipped");
-    // logger.warn("Deprecated flag used");
-    // logger.error("Compilation failed");
-    {
-        // log from main
-        let mut logger = global_logger().lock().unwrap();
-        logger.info("Build started");
-    }
+    log_info!("Build started");
+
+    // log from main
+    log_error!("error test");
+    log_warn!("warn test");
+    log_info!("info test");
+    log_debug!("debug test");
+    log_trace!("trace test");
 
     let files:[&str;2] = ["main.c", "math.c"];
 
