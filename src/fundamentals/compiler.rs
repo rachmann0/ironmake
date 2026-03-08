@@ -1,5 +1,6 @@
 use std::process::Command;
 use crate::fundamentals::artifact::{Artifact};
+use crate::utils::logger::{global_logger};
 
 pub trait Compiler {
     fn compile(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>;
@@ -8,6 +9,8 @@ pub trait Compiler {
 pub struct GCC;
 impl Compiler for GCC {
     fn compile(&self, extra_flags:&str, artifacts: &[Artifact])->Result<String, String>{
+        let mut logger = global_logger().lock().unwrap();
+
         let filepaths: Vec<String> = artifacts
         .iter()
         .map(|a| a.path.to_string_lossy().into())
@@ -15,10 +18,18 @@ impl Compiler for GCC {
 
         let flag:&str = "-c"; // compile to object file
 
+        let all_args: Vec<&str> = [extra_flags, flag].into_iter()
+        // chain just appends iterators
+        .chain(filepaths.iter().map(|s| s.as_str())) 
+        .collect();
+        // Log the command
+        logger.info(&format!("Running command: gcc {}", all_args.join(" ")));
+
         let output = Command::new("gcc")
-            .args([extra_flags])
-            .args([flag])
-            .args(filepaths)
+            // .args([extra_flags])
+            // .args([flag])
+            // .args(filepaths)
+            .args(&all_args)
             .output()
             .map_err(|e| format!("Failed to run gcc: {e}"))?;
 

@@ -1,9 +1,12 @@
 mod fundamentals;
+mod utils;
+
 use crate::fundamentals::artifact::Artifact;
 // ? crate:: avoids ambiguity (comes from current crate, not dependancy)
 // ? This path always starts from the crate root.
 use crate::fundamentals::compiler::{GCC}; 
 use crate::fundamentals::build_context::{Build, Modes};
+use crate::utils::logger::{init_logger, global_logger, LogLevel};
 
 // ? std
 use std::path::PathBuf;
@@ -28,6 +31,19 @@ use std::path::PathBuf;
 */
 
 fn main() {
+    // initialize once
+    init_logger("build.log", LogLevel::Info);
+
+    // logger.info("Build started");
+    // logger.debug("This debug message will be skipped");
+    // logger.warn("Deprecated flag used");
+    // logger.error("Compilation failed");
+    {
+        // log from main
+        let mut logger = global_logger().lock().unwrap();
+        logger.info("Build started");
+    }
+
     let files:[&str;2] = ["main.c", "math.c"];
 
     let build_context1:Build<GCC> = Build { compiler: GCC, mode: Modes::O0};
