@@ -1,10 +1,12 @@
 use std::ffi::OsStr;
-use std::path::PathBuf;
 use std::time::SystemTime;
+use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ArtifactType {
     // ! triple slash (///) doc comments for hover tooltips
+    /// Source file (.c)
+    Header,
     /// Source file (.c)
     Source,
     /// Compiled object file (.o, .obj)
@@ -16,6 +18,9 @@ pub enum ArtifactType {
     /// Static library (.a, .lib)
     StaticLib,
 
+    /// invalid ext
+    Other,
+
     // /// Packaged library, module, or archive (JAR, wheel, zip)
     // Package,
     // /// Generated documentation
@@ -24,6 +29,25 @@ pub enum ArtifactType {
     // Intermediate,
     // /// Any other custom type
     // Other(String),
+}
+
+impl ArtifactType {
+    pub fn classify(path: &Path) -> ArtifactType{
+    let ext = match path.extension().and_then(|e| e.to_str()) {
+        Some(ext) => ext,
+        None => return ArtifactType::Binary, // no ext
+    };
+
+    match ext {
+        "h" | "hpp" => ArtifactType::Header,
+        "c" | "cpp" => ArtifactType::Source,
+        "o" => ArtifactType::Object,
+        "exe" => ArtifactType::Binary,
+        "dll" | "so" | "dylib" => ArtifactType::SharedLib,
+        "a" | "lib" => ArtifactType::StaticLib,
+        _ => ArtifactType::Other // invalid ext
+    }
+}
 }
 
 #[derive(Debug, Clone)]
@@ -36,38 +60,36 @@ pub struct Artifact {
     pub created_at: SystemTime,
     /// Optional metadata (like compiler flags, source files, hash)
     pub metadata: Option<String>,
+
+    pub dependancies: Vec<Artifact>,
+    // pub target: Option<Artifact>,
+    pub is_built:bool
 }
 
 impl Artifact {
     /// Create a new artifact
     // pub fn new(path: PathBuf, artifact_type: ArtifactType, metadata: Option<String>) -> Self {
-    pub fn new(path: PathBuf, metadata: Option<String>) -> Self {
-        let source_exts=
-        [OsStr::new("c")];
-        let object_exts=
-        [OsStr::new("o")];
-        let binary_exts=
-        [OsStr::new("exe")];
-        let shared_lib_exts =
-        [OsStr::new("dll"), OsStr::new("so"), OsStr::new("dylib")];
-        let static_lib_exts=
-        [OsStr::new("a"), OsStr::new("lib")];
+    pub fn new(
+        path: PathBuf, metadata: Option<String>,
+        dependancies: Vec<Artifact>,
+        // dependancies2: Vec<usize>,
+        is_built:bool
+    ) -> Self {
 
         Self {
-            artifact_type: match path.extension() {
-                Some(ext) if source_exts.contains(&ext) => ArtifactType::Source,
-                Some(ext) if object_exts.contains(&ext) => ArtifactType::Object,
-                Some(ext) if shared_lib_exts.contains(&ext) => ArtifactType::SharedLib,
-                Some(ext) if binary_exts.contains(&ext) => ArtifactType::Binary,
-                Some(ext) if static_lib_exts.contains(&ext) => ArtifactType::StaticLib,
-                Some(ext) => panic!("Unsupported file extension: {:?}", ext),
-                None => panic!("File has no extension: {:?}", path),
+            artifact_type: match ArtifactType::classify(&path) {
+                ArtifactType::Other=>panic!("Unsupported file extension: {:?}", path),
+                default => default
             },
             path,
             created_at: SystemTime::now(),
             metadata,
+            dependancies,
+            // target,
+            is_built,
         }
     }
+
 
     // /// Check if the artifact exists on disk
     // pub fn exists(&self) -> bool {

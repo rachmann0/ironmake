@@ -1,14 +1,15 @@
 mod graph;
-mod fundamentals;
+mod builder;
 mod utils;
 
-use crate::fundamentals::artifact::Artifact;
+use crate::graph::artifact::{self, Artifact};
 // ? crate:: avoids ambiguity (comes from current crate, not dependancy)
 // ? This path always starts from the crate root.
-use crate::fundamentals::compiler::{GCC}; 
-use crate::fundamentals::build_context::{Build, Modes};
+use crate::builder::compiler::{GCC}; 
+use crate::builder::build_context::{Build, Modes};
+use crate::graph::DAG::Graph;
 use crate::utils::logger::{init_logger, LogLevel, parse_log_level};
-use crate::utils::fs::{recursive_list_files};
+use crate::utils::fs::{recursive_list_files, list_files};
 
 // ? std
 use std::path::{Path, PathBuf};
@@ -37,11 +38,6 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     println!("Running From: {}", args[0]);
 
-    let path_list:Vec<PathBuf> = recursive_list_files(Path::new(".")).expect("failed to list files");
-    for path in path_list  {
-        println!("{}", path.display());
-    }
-
     // ! initialize Logger
     let log_level:LogLevel = parse_log_level();
     init_logger(log_level);
@@ -55,22 +51,66 @@ fn main() {
     log_debug!("debug test");
     log_trace!("trace test");
 
-    let files:[&str;2] = ["main.c", "math.c"];
-
     let build_context1:Build<GCC> = Build { compiler: GCC, mode: Modes::O0};
-    let artifacts:Vec<Artifact> =
-    files.iter()
-    .map(|f| Artifact::new(PathBuf::from(f), None))
-    .collect();
-    // build_context1.compile(&artifacts).expect("Compile Failed");
-    match build_context1.compile(&artifacts) {
-    Ok(output) => {
-        println!("Compilation succeeded:\n{}", output);
+    let mut nodes:Vec<Artifact> = vec![];
+    // let path_list:Vec<PathBuf> = recursive_list_files(Path::new("."), None)
+    let path_list:Vec<PathBuf> = list_files(Path::new("."), None)
+    .expect("failed to list files");
+
+    println!("{:?}", path_list);
+    for path in path_list  {
+        println!("{}", path.display());
+        //    Artifact::new(path, metadata)
+        let artifact: Artifact = Artifact::new(path, None, vec![], false);
+        // let node:Node = Node::new(artifact, target);
+        nodes.push(artifact);
     }
-    Err(error) => {
-        eprintln!("Compilation failed:\n{}", error);
-    }
-    }
+    println!("nodes.len()={}", nodes.len());
+
+    let build_graph:Graph = Graph::new(nodes);
+    let target:&mut Artifact = &mut Artifact::new(PathBuf::from("main.exe"), None, vec![], false);
+    // build_context1.build(target, build_graph);
+    // println!("{:?}", target);
+    
+
+    // // ! dependancies
+    // let mut dependancies:Vec<Artifact> = vec![];
+    // let path_list:Vec<PathBuf> = recursive_list_files(Path::new("."), "c")
+    // .expect("failed to list files");
+
+
+    // for path in path_list  {
+    //     println!("{}", path.display());
+    //     //    Artifact::new(path, metadata)
+    //     let artifact: Artifact = Artifact::new(path, None, vec![], false);
+    //     // let node:Node = Node::new(artifact, target);
+    //     dependancies.push(artifact);
+    // }
+
+    // println!("dependancies.len() = {}", dependancies.len());
+
+    // // ! target
+    // let mut target:Artifact = Artifact::new(PathBuf::from("main.exe"), None, dependancies, false);
+
+    // // ! build
+    // build_context1.build(&mut target);
+
+    // let files:[&str;2] = ["main.c", "math.c"];
+
+
+    // let artifacts:Vec<Artifact> =
+    // files.iter()
+    // .map(|f| Artifact::new(PathBuf::from(f), None, vec![], false))
+    // .collect();
+    // // build_context1.compile(&artifacts).expect("Compile Failed");
+    // match build_context1.compile(&artifacts) {
+    // Ok(output) => {
+    //     println!("Compilation succeeded:\n{}", output);
+    // }
+    // Err(error) => {
+    //     eprintln!("Compilation failed:\n{}", error);
+    // }
+    // }
 
 
     // match build_context1.link(&artifacts) {
