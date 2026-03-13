@@ -1,5 +1,5 @@
 use std::process::Command;
-use crate::graph::artifact::{Artifact};
+use crate::ds::artifact::{Artifact};
 use crate::log_debug;
 
 pub trait Compiler {

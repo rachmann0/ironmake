@@ -2,7 +2,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use crate::graph::artifact::{ArtifactType};
+use crate::ds::artifact::{ArtifactType};
 
 
 // ! Filesystem utilities

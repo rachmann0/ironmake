@@ -1,6 +1,6 @@
 use crate::builder::compiler::{Compiler};
-use crate::graph::artifact::{self, Artifact, ArtifactType};
-use crate::graph::DAG::Graph;
+use crate::ds::artifact::{self, Artifact, ArtifactType};
+use crate::ds::graph::Graph;
 
 use crate::{log_error, log_info};
 
@@ -67,25 +67,26 @@ impl<C: Compiler> Build<C> {
         self.compiler.link(extra_flags, artifacts)
     }
 
-    pub fn build(&self, target:&mut Artifact, graph:Graph){
-        if target.dependancies.len() == 0 {
-            //* no dependancy (end of graph) */
-            match self.compile2(&[target]) {
-                Ok(output) => {
-                    log_info!("Compilation succeeded:\n{}", output)
-                }
-                Err(error) => {
-                    log_error!("Compilation failed:\n{}", error);
-                }
-            }
-        }
+    pub fn build(&self, target_index:usize, graph:Graph){
 
-        for dependancy in target.dependancies.iter() {
-            if dependancy.is_built {
-            } else {
-                // self.build(dependancy);
-            }
-        }
+        // if target.dependancies.len() == 0 {
+        //     //* no dependancy (end of graph) */
+        //     match self.compile2(&[target]) {
+        //         Ok(output) => {
+        //             log_info!("Compilation succeeded:\n{}", output)
+        //         }
+        //         Err(error) => {
+        //             log_error!("Compilation failed:\n{}", error);
+        //         }
+        //     }
+        // }
+
+        // for dependancy in target.dependancies.iter() {
+        //     if dependancy.is_built {
+        //     } else {
+        //         // self.build(dependancy);
+        //     }
+        // }
 
         // if artifact.artifact_type == ArtifactType::Binary {
         //     match self.compile(&artifact.dependancies) {

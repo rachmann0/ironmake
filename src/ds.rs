@@ -1,2 +1,2 @@
-pub mod DAG;
+pub mod graph;
 pub mod artifact;
