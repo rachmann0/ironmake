@@ -62,6 +62,7 @@ pub struct Artifact {
     pub metadata: Option<String>,
 
     pub dependancies: Vec<Artifact>,
+    pub dependancy_indexes: Vec<usize>,
     // pub target: Option<Artifact>,
     pub is_built:bool
 }
@@ -73,7 +74,9 @@ impl Artifact {
         path: PathBuf, metadata: Option<String>,
         dependancies: Vec<Artifact>,
         // dependancies2: Vec<usize>,
-        is_built:bool
+        is_built:bool,
+        dependancy_indexes: Vec<usize>,
+
     ) -> Self {
 
         Self {
@@ -85,6 +88,7 @@ impl Artifact {
             created_at: SystemTime::now(),
             metadata,
             dependancies,
+            dependancy_indexes,
             // target,
             is_built,
         }

@@ -51,53 +51,50 @@ impl Modes {
 
 pub struct Build<C: Compiler> {
     pub compiler: C,
-    pub mode: Modes
+    pub mode: Modes,
+    pub graph: Graph
 }
 impl<C: Compiler> Build<C> {
     pub fn compile(&self, artifacts: &[Artifact])->Result<String, String> {
         let extra_flags:&str = self.mode.flag_value();
         self.compiler.compile(extra_flags, artifacts)
     }
-    pub fn compile2(&self, artifacts: &[&mut Artifact])->Result<String, String> {
+    pub fn compile2(&mut self, target_index:usize) {
         let extra_flags:&str = self.mode.flag_value();
-        self.compiler.compile2(extra_flags, artifacts)
+        self.compiler.compile2(extra_flags, target_index, &mut self.graph);
     }
-    pub fn link(&self, artifacts: &[Artifact])->Result<String, String>{
+    pub fn link(&mut self, target_index:usize){
         let extra_flags:&str = self.mode.flag_value();
-        self.compiler.link(extra_flags, artifacts)
+        self.compiler.link(extra_flags, target_index, &mut self.graph);
     }
 
-    pub fn build(&self, target_index:usize, graph:Graph){
+    pub fn build(&mut self, target_index:usize){
+        // Build dependencies for this target first
+        let dependancy_indexes =
+        self.graph.nodes[target_index].dependancy_indexes.clone();
 
-        // if target.dependancies.len() == 0 {
-        //     //* no dependancy (end of graph) */
-        //     match self.compile2(&[target]) {
-        //         Ok(output) => {
-        //             log_info!("Compilation succeeded:\n{}", output)
-        //         }
-        //         Err(error) => {
-        //             log_error!("Compilation failed:\n{}", error);
-        //         }
-        //     }
-        // }
-
-        // for dependancy in target.dependancies.iter() {
-        //     if dependancy.is_built {
-        //     } else {
-        //         // self.build(dependancy);
-        //     }
-        // }
-
-        // if artifact.artifact_type == ArtifactType::Binary {
-        //     match self.compile(&artifact.dependancies) {
-        //         Ok(output) => {
-        //             log_info!("Compilation succeeded:\n{}", output)
-        //         }
-        //         Err(error) => {
-        //             log_error!("Compilation failed:\n{}", error);
-        //         }
-        //     }
-        // };
-        // artifact.clone()
+        if dependancy_indexes.is_empty() {
+            if let Some(artifact) = self.graph.nodes.get(target_index) {
+                match artifact.artifact_type {
+                    ArtifactType::Source => {
+                        self.compile2(target_index);
+                    },
+                    _ => {}
+                }
+            }
+            
+        } else {
+            for dep_idx in dependancy_indexes {
+                let built = self.graph.nodes[dep_idx].is_built;
+                if !built {
+                    self.build(dep_idx);
+                }
+            }
+            // compile target after dependencies
+            if !self.graph.nodes[target_index].is_built {
+                // self.compile2(target_index);
+                self.link(target_index);
+            }
+        }
     }
 }

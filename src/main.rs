@@ -2,14 +2,14 @@ mod ds;
 mod builder;
 mod utils;
 
-use crate::ds::artifact::{self, Artifact};
+use crate::ds::artifact::{Artifact};
 // ? crate:: avoids ambiguity (comes from current crate, not dependancy)
 // ? This path always starts from the crate root.
 use crate::builder::compiler::{GCC}; 
 use crate::builder::build_context::{Build, Modes};
-use crate::ds::graph::{Graph, Rule};
+use crate::ds::graph::{Graph};
 use crate::utils::logger::{init_logger, LogLevel, parse_log_level};
-use crate::utils::fs::{recursive_list_files, list_files};
+use crate::utils::fs::{list_files};
 
 // ? std
 use std::path::{Path, PathBuf};
@@ -51,10 +51,7 @@ fn main() {
     log_debug!("debug test");
     log_trace!("trace test");
 
-    // ! init build context
-    let build_context1:Build<GCC> = Build { compiler: GCC, mode: Modes::O0};
-
-    // ! init graph from list of files
+    // ! init graph nodes from list of files
     let mut nodes:Vec<Artifact> = vec![];
     // let path_list:Vec<PathBuf> = recursive_list_files(Path::new("."), None)
     let path_list:Vec<PathBuf> = list_files(Path::new("."), None)
@@ -64,34 +61,44 @@ fn main() {
     for path in path_list  {
         // println!("{}", path.display());
         //    Artifact::new(path, metadata)
-        let artifact: Artifact = Artifact::new(path, None, vec![], false);
+        let artifact: Artifact = Artifact::new(path, None, vec![], false, vec![]);
         // let node:Node = Node::new(artifact, target);
         nodes.push(artifact);
     }
     // println!("nodes.len()={}", nodes.len());
 
-    let mut build_graph:Graph = Graph::new(nodes, vec![]);
+    let mut build_graph:Graph = Graph::new(nodes);
 
-    // ! init target
-    // let target:&mut Artifact = &mut Artifact::new(PathBuf::from("main.exe"), None, vec![], false);
-    let target:Artifact = Artifact::new(PathBuf::from("main.exe"), None, vec![], false);
-    build_graph.nodes.push(target);
-    let target_index:usize = build_graph.nodes.len()-1;
-
-    // ! connect init to target
+    // ! connect dependancies for each nodes
     let mut dependancy_indexes:Vec<usize> = vec![];
     for (i, el) in build_graph.nodes.iter().enumerate() {
         if el.path.extension().is_some_and(|ext| ext == "c") {
             dependancy_indexes.push(i);
         }
     }
-    let rule:Rule = Rule::new(dependancy_indexes, target_index);
-    build_graph.edges.push(rule);
-    // println!("{:?}", build_graph.nodes);
-    // println!("{:?}", build_graph.edges);
+
+    // ! init target
+    let target:Artifact =
+    Artifact::new(
+        PathBuf::from("main.exe"),
+        None, vec![],
+        false, dependancy_indexes
+    );
+    build_graph.nodes.push(target);
+    let target_index:usize = build_graph.nodes.len()-1;
+    let target:&Artifact = &build_graph.nodes[target_index];
+
+    println!("{:?}", target.dependancy_indexes);
+    for &el in &target.dependancy_indexes {
+        println!("{}", build_graph.nodes[el].path.display());
+    }
+    println!("target={}", build_graph.nodes[target_index].path.display());
+
+    // ! init build context
+    let mut build_context1:Build<GCC> = Build { compiler: GCC, mode: Modes::O0, graph: build_graph};
 
     // ! run build on target
-    build_context1.build(target_index, build_graph);
+    build_context1.build(target_index);
     // println!("{:?}", target);
     
 
