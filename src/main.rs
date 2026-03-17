@@ -81,6 +81,8 @@ fn main() {
         }
     }
 
+    // TODO: initialize is_built for each artifacts
+
     // ! init target
     let target:Artifact =
     Artifact::new(
@@ -104,56 +106,4 @@ fn main() {
     // ! run build on target
     build_context1.build(target_index);
     // println!("{:?}", target);
-    
-
-    // // ! dependancies
-    // let mut dependancies:Vec<Artifact> = vec![];
-    // let path_list:Vec<PathBuf> = recursive_list_files(Path::new("."), "c")
-    // .expect("failed to list files");
-
-
-    // for path in path_list  {
-    //     println!("{}", path.display());
-    //     //    Artifact::new(path, metadata)
-    //     let artifact: Artifact = Artifact::new(path, None, vec![], false);
-    //     // let node:Node = Node::new(artifact, target);
-    //     dependancies.push(artifact);
-    // }
-
-    // println!("dependancies.len() = {}", dependancies.len());
-
-    // // ! target
-    // let mut target:Artifact = Artifact::new(PathBuf::from("main.exe"), None, dependancies, false);
-
-    // // ! build
-    // build_context1.build(&mut target);
-
-    // let files:[&str;2] = ["main.c", "math.c"];
-
-
-    // let artifacts:Vec<Artifact> =
-    // files.iter()
-    // .map(|f| Artifact::new(PathBuf::from(f), None, vec![], false))
-    // .collect();
-    // // build_context1.compile(&artifacts).expect("Compile Failed");
-    // match build_context1.compile(&artifacts) {
-    // Ok(output) => {
-    //     println!("Compilation succeeded:\n{}", output);
-    // }
-    // Err(error) => {
-    //     eprintln!("Compilation failed:\n{}", error);
-    // }
-    // }
-
-
-    // match build_context1.link(&artifacts) {
-    // Ok(output) => {
-    //     println!("Linking succeeded:\n{}", output);
-    // }
-    // Err(error) => {
-    //     eprintln!("Linking failed:\n{}", error);
-    // }
-    // }
-
-
 }
