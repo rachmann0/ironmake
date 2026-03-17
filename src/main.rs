@@ -11,7 +11,7 @@ use crate::ds::graph::{Graph};
 use crate::utils::logger::{init_logger, LogLevel, parse_log_level};
 use crate::utils::fs::{list_files};
 
-use std::fs::create_dir_all;
+// use std::fs::create_dir_all;
 // ? std
 use std::path::{Path, PathBuf};
 use std::env;
@@ -36,8 +36,8 @@ use std::env;
 */
 
 fn main() {
-    // ! init /build folder
-    create_dir_all("./build").expect("Failed to create build dir");
+    // // ! init /build folder
+    // create_dir_all("./build").expect("Failed to create build dir");
 
     let args: Vec<String> = env::args().collect();
     println!("Running From: {}", args[0]);

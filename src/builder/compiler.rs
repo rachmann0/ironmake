@@ -1,4 +1,8 @@
 use std::process::Command;
+use std::path::{PathBuf};
+
+// Change this constant to redirect outputs to a different folder
+const BUILD_DIR: &str = "build";
 use crate::ds::artifact::{Artifact, ArtifactType};
 use crate::ds::graph::{Graph};
 use crate::{log_debug, log_error};
@@ -17,6 +21,7 @@ impl Compiler for GCC {
             let dependancy_indexes = target_ref.dependancy_indexes.clone();
             let filename_lossy_owned = target_ref.path.file_name().unwrap().to_string_lossy().into_owned();
 
+
             let flag:&str = "-c"; // compile to object file
 
             // Collect file paths from the requested dependency indexes.
@@ -26,16 +31,30 @@ impl Compiler for GCC {
                 .map(|a| a.path.to_string_lossy().into())
                 .collect();
 
-            // combine all args (extra flags, compile flag, source paths)
+            // prepare output path into build/<filename>.o
+            let mut output_path = PathBuf::from(BUILD_DIR);
+            output_path.push(&filename_lossy_owned);
+            output_path.set_extension("o");
+            let output_path_str = output_path.to_string_lossy().into_owned();
+
+            // ensure we have the source filename (target) included
+            let filename_full = target_ref.path.to_string_lossy().into_owned();
+
+            // combine all args (extra flags, compile flag, source paths, target source, -o <out>)
             let all_args: Vec<&str> =
                 std::iter::once(extra_flags)
                 .chain(std::iter::once(flag))
                 .chain(filepaths.iter().map(|s| s.as_str()))
-                .chain(std::iter::once(filename_lossy_owned.as_ref()))
+                .chain(std::iter::once(filename_full.as_ref()))
+                .chain(std::iter::once("-o"))
+                .chain(std::iter::once(output_path_str.as_ref()))
                 .collect();
 
             // ! Log the command
             log_debug!("Running command: gcc {}", all_args.join(" "));
+
+            // ! ensure build directory exists
+            let _ = std::fs::create_dir_all(BUILD_DIR);
 
             // ! run the command
             let output = Command::new("gcc")
@@ -48,9 +67,12 @@ impl Compiler for GCC {
                     if output.status.success() {
                         if let Some(target_mut) = graph.nodes.get_mut(target_index) {
                             target_mut.is_built = true;
-                            // change extension from source (e.g., main.c) to object (.o)
-                            target_mut.path.set_extension("o");
-                            target_mut.artifact_type = ArtifactType::Object;
+                            // change path to build/<filename>.o
+                                let mut new_path = PathBuf::from(BUILD_DIR);
+                                new_path.push(&filename_lossy_owned);
+                                new_path.set_extension("o");
+                                target_mut.path = new_path;
+                                target_mut.artifact_type = ArtifactType::Object;
                         }
                         log_debug!("Command Success: {}", String::from_utf8_lossy(&output.stdout).to_string());
                     } else {
@@ -99,6 +121,7 @@ impl Compiler for GCC {
             let dependancy_indexes = target_ref.dependancy_indexes.clone();
             let filename_lossy_owned = target_ref.path.file_name().unwrap().to_string_lossy().into_owned();
 
+
             // let flag:&str = "-c"; // compile to object file
 
             // Collect file paths from the requested dependency indexes.
@@ -108,17 +131,24 @@ impl Compiler for GCC {
                 .map(|a| a.path.to_string_lossy().into())
                 .collect();
 
-            // combine all args (extra flags, compile flag, source paths)
+            // prepare output path into build/<filename>
+            let mut output_path = PathBuf::from(BUILD_DIR);
+            output_path.push(&filename_lossy_owned);
+            let output_path_str = output_path.to_string_lossy().into_owned();
+
+            // combine all args (extra flags, source paths, -o <out>)
             let all_args: Vec<&str> =
                 std::iter::once(extra_flags)
-                // .chain(std::iter::once(flag))
                 .chain(filepaths.iter().map(|s| s.as_str()))
                 .chain(std::iter::once("-o"))
-                .chain(std::iter::once(filename_lossy_owned.as_ref()))
+                .chain(std::iter::once(output_path_str.as_ref()))
                 .collect();
 
             // ! Log the command
             log_debug!("Running command: gcc {}", all_args.join(" "));
+
+            // ! ensure build directory exists
+            let _ = std::fs::create_dir_all(BUILD_DIR);
 
             // ! run the command
             let output = Command::new("gcc")
@@ -131,9 +161,10 @@ impl Compiler for GCC {
                     if output.status.success() {
                         if let Some(target_mut) = graph.nodes.get_mut(target_index) {
                             target_mut.is_built = true;
-                            // change extension from source (e.g., main.c) to object (.o)
-                            target_mut.path.set_extension("o");
-                            target_mut.artifact_type = ArtifactType::Object;
+                            // set linked output into build/<filename>
+                            target_mut.path = output_path.clone();
+                            // set artifact type to Binary for linked executables
+                            target_mut.artifact_type = ArtifactType::Binary;
                         }
                         log_debug!("Command Success: {}", String::from_utf8_lossy(&output.stdout).to_string());
                     } else {
