@@ -36,9 +36,6 @@ use std::env;
 */
 
 fn main() {
-    // // ! init /build folder
-    // create_dir_all("./build").expect("Failed to create build dir");
-
     let args: Vec<String> = env::args().collect();
     println!("Running From: {}", args[0]);
 
@@ -47,13 +44,6 @@ fn main() {
     init_logger(log_level);
 
     log_info!("Build started");
-
-    // log from main
-    log_error!("error test");
-    log_warn!("warn test");
-    log_info!("info test");
-    log_debug!("debug test");
-    log_trace!("trace test");
 
     // ! init graph nodes from list of files
     let mut nodes:Vec<Artifact> = vec![];

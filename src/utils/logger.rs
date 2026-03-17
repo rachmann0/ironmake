@@ -14,6 +14,15 @@ pub enum LogLevel {
     Trace = 5,
 }
 
+
+/* // ! log usage:
+    log_error!("error test");
+    log_warn!("warn test");
+    log_info!("info test");
+    log_debug!("debug test");
+    log_trace!("trace test");
+*/
+
 /// The logger struct
 pub struct Logger {
     file: Option<File>,
@@ -50,10 +59,15 @@ impl Logger {
         }
     }
 
+    #[allow(dead_code)]
     pub fn error(&mut self, msg: &str) { self.log(LogLevel::Error, msg); }
+    #[allow(dead_code)]
     pub fn warn(&mut self, msg: &str) { self.log(LogLevel::Warn, msg); }
+    #[allow(dead_code)]
     pub fn info(&mut self, msg: &str) { self.log(LogLevel::Info, msg); }
+    #[allow(dead_code)]
     pub fn debug(&mut self, msg: &str) { self.log(LogLevel::Debug, msg); }
+    #[allow(dead_code)]
     pub fn trace(&mut self, msg: &str) { self.log(LogLevel::Trace, msg); }
 
     pub fn disabled() -> Self {
@@ -200,3 +214,4 @@ pub fn parse_log_level() -> LogLevel {
 
     LogLevel::Off
 }
+

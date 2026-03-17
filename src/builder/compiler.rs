@@ -30,11 +30,17 @@ impl Compiler for GCC {
                 .map(|a| a.path.to_string_lossy().into())
                 .collect();
 
-            // prepare output path into build/<filename>.o
-            let mut output_path = PathBuf::from(BUILD_DIR);
-            output_path.push(&filename_lossy_owned);
-            output_path.set_extension("o");
-            let output_path_str = output_path.to_string_lossy().into_owned();
+            // prepare output path into object build/<filename>.o
+            let mut output_o_path = PathBuf::from(BUILD_DIR);
+            output_o_path.push(&filename_lossy_owned);
+            output_o_path.set_extension("o");
+            let output_o_path_str = output_o_path.to_string_lossy().into_owned();
+
+            // prepare output path into dependancy list build/<filename>.d
+            let mut output_d_path = PathBuf::from(BUILD_DIR);
+            output_d_path.push(&filename_lossy_owned);
+            output_d_path.set_extension("d");
+            let output_d_path_str = output_d_path.to_string_lossy().into_owned();
 
             // ensure we have the source filename (target) included
             let filename_full = target_ref.path.to_string_lossy().into_owned();
@@ -45,8 +51,11 @@ impl Compiler for GCC {
                 .chain(std::iter::once(flag))
                 .chain(filepaths.iter().map(|s| s.as_str()))
                 .chain(std::iter::once(filename_full.as_ref()))
-                .chain(std::iter::once("-o"))
-                .chain(std::iter::once(output_path_str.as_ref()))
+                .chain(std::iter::once("-o")) // object file
+                .chain(std::iter::once(output_o_path_str.as_ref()))
+                .chain(std::iter::once("-MMD")) // dependancy list
+                .chain(std::iter::once("-MF"))
+                .chain(std::iter::once(output_d_path_str.as_ref()))
                 .collect();
 
             // ! Log the command
