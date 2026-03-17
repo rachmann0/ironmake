@@ -73,12 +73,12 @@ pub fn init_logger(level: LogLevel) -> &'static Mutex<Logger> {
         let logger = if level == LogLevel::Off {
             Logger::disabled()
         } else {
-            create_dir_all("logs").expect("Failed to create logs dir");
+            create_dir_all("build/logs").expect("Failed to create logs dir");
             let epoch = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs();
-            Logger::new(&format!("logs/build_{}.log", epoch), level)
+            Logger::new(&format!("build/logs/build_{}.log", epoch), level)
                 .expect("Failed to create logger")
         };
 
