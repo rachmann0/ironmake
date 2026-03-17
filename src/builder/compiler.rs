@@ -15,13 +15,44 @@ pub trait Compiler {
 pub struct GCC;
 impl Compiler for GCC {
     fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph){
+        use crate::utils::cache::{compute_file_hash, load_cache, save_cache};
+
+        // Load cache (file: build/cache/build_cache.csv)
+        let mut cache = load_cache().unwrap_or_default();
+
         // Gather immutable data first to avoid simultaneous borrows
         if let Some(target_ref) = graph.nodes.get(target_index) {
             let dependancy_indexes = target_ref.dependancy_indexes.clone();
             let filename_lossy_owned = target_ref.path.file_name().unwrap().to_string_lossy().into_owned();
 
-
             let flag:&str = "-c"; // compile to object file
+
+            // Compute source file hash
+            let filename_full = target_ref.path.to_string_lossy().into_owned();
+            let source_key = filename_full.clone();
+            let current_hash = match compute_file_hash(&target_ref.path) {
+                Ok(h) => h,
+                Err(e) => {
+                    log_error!("Failed to compute hash for {}: {}", filename_full, e);
+                    String::new()
+                }
+            };
+
+            // If unchanged according to cache, skip compilation
+            if let Some(cached) = cache.get(&source_key) {
+                if cached == &current_hash && !current_hash.is_empty() {
+                    log_debug!("Cache hit for {}: skipping compile", filename_full);
+                    if let Some(target_mut) = graph.nodes.get_mut(target_index) {
+                        target_mut.is_built = true;
+                        let mut new_path = PathBuf::from(BUILD_DIR);
+                        new_path.push(&filename_lossy_owned);
+                        new_path.set_extension("o");
+                        target_mut.path = new_path;
+                        target_mut.artifact_type = ArtifactType::Object;
+                    }
+                    return;
+                }
+            }
 
             // Collect file paths from the requested dependency indexes.
             let filepaths: Vec<String> = dependancy_indexes
@@ -41,9 +72,6 @@ impl Compiler for GCC {
             output_d_path.push(&filename_lossy_owned);
             output_d_path.set_extension("d");
             let output_d_path_str = output_d_path.to_string_lossy().into_owned();
-
-            // ensure we have the source filename (target) included
-            let filename_full = target_ref.path.to_string_lossy().into_owned();
 
             // combine all args (extra flags, compile flag, source paths, target source, -o <out>)
             let all_args: Vec<&str> =
@@ -73,6 +101,14 @@ impl Compiler for GCC {
             match output {
                 Ok(output) =>{
                     if output.status.success() {
+                        // update cache with new hash
+                        if !current_hash.is_empty() {
+                            cache.insert(source_key.clone(), current_hash.clone());
+                            if let Err(e) = save_cache(&cache) {
+                                log_error!("Failed to save cache: {}", e);
+                            }
+                        }
+
                         if let Some(target_mut) = graph.nodes.get_mut(target_index) {
                             target_mut.is_built = true;
                             // change path to build/<filename>.o
