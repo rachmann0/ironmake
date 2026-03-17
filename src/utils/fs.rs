@@ -48,6 +48,7 @@ pub fn list_files(path: &Path, extension:Option<&str>) -> io::Result<Vec<PathBuf
     Ok(files)
 }
 
+#[allow(dead_code)]
 pub fn recursive_list_files(path: &Path, extension:Option<&str>) -> io::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 

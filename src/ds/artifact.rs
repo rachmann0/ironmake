@@ -1,5 +1,5 @@
-use std::ffi::OsStr;
-use std::time::SystemTime;
+// use std::ffi::OsStr;
+// use std::time::SystemTime;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -57,11 +57,11 @@ pub struct Artifact {
     /// Type of artifact (e.g., "binary", "object", "library", "package")
     pub artifact_type: ArtifactType,
     /// Timestamp of creation
-    pub created_at: SystemTime,
-    /// Optional metadata (like compiler flags, source files, hash)
-    pub metadata: Option<String>,
+    // pub created_at: SystemTime,
+    // /// Optional metadata (like compiler flags, source files, hash)
+    // pub metadata: Option<String>,
 
-    pub dependancies: Vec<Artifact>,
+    // pub dependancies: Vec<Artifact>,
     pub dependancy_indexes: Vec<usize>,
     // pub target: Option<Artifact>,
     pub is_built:bool
@@ -71,8 +71,9 @@ impl Artifact {
     /// Create a new artifact
     // pub fn new(path: PathBuf, artifact_type: ArtifactType, metadata: Option<String>) -> Self {
     pub fn new(
-        path: PathBuf, metadata: Option<String>,
-        dependancies: Vec<Artifact>,
+        path: PathBuf,
+        // metadata: Option<String>,
+        // dependancies: Vec<Artifact>,
         // dependancies2: Vec<usize>,
         is_built:bool,
         dependancy_indexes: Vec<usize>,
@@ -85,9 +86,9 @@ impl Artifact {
                 default => default
             },
             path,
-            created_at: SystemTime::now(),
-            metadata,
-            dependancies,
+            // created_at: SystemTime::now(),
+            // metadata,
+            // dependancies,
             dependancy_indexes,
             // target,
             is_built,

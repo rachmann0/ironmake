@@ -65,7 +65,7 @@ fn main() {
     for path in path_list  {
         // println!("{}", path.display());
         //    Artifact::new(path, metadata)
-        let artifact: Artifact = Artifact::new(path, None, vec![], false, vec![]);
+        let artifact: Artifact = Artifact::new(path, false, vec![]);
         // let node:Node = Node::new(artifact, target);
         nodes.push(artifact);
     }
@@ -87,8 +87,7 @@ fn main() {
     let target:Artifact =
     Artifact::new(
         PathBuf::from("main.exe"),
-        None, vec![],
-        false, dependancy_indexes
+        false, dependancy_indexes,
     );
     build_graph.nodes.push(target);
     let target_index:usize = build_graph.nodes.len()-1;

@@ -1,8 +1,8 @@
 use crate::builder::compiler::{Compiler};
-use crate::ds::artifact::{self, Artifact, ArtifactType};
+use crate::ds::artifact::{ArtifactType};
 use crate::ds::graph::Graph;
 
-use crate::{log_error, log_info};
+// use crate::{log_error, log_info};
 
 /* 
     build context
@@ -55,13 +55,9 @@ pub struct Build<C: Compiler> {
     pub graph: Graph
 }
 impl<C: Compiler> Build<C> {
-    pub fn compile(&self, artifacts: &[Artifact])->Result<String, String> {
+    pub fn compile(&mut self, target_index:usize) {
         let extra_flags:&str = self.mode.flag_value();
-        self.compiler.compile(extra_flags, artifacts)
-    }
-    pub fn compile2(&mut self, target_index:usize) {
-        let extra_flags:&str = self.mode.flag_value();
-        self.compiler.compile2(extra_flags, target_index, &mut self.graph);
+        self.compiler.compile(extra_flags, target_index, &mut self.graph);
     }
     pub fn link(&mut self, target_index:usize){
         let extra_flags:&str = self.mode.flag_value();
@@ -77,7 +73,7 @@ impl<C: Compiler> Build<C> {
             if let Some(artifact) = self.graph.nodes.get(target_index) {
                 match artifact.artifact_type {
                     ArtifactType::Source => {
-                        self.compile2(target_index);
+                        self.compile(target_index);
                     },
                     _ => {}
                 }
