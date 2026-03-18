@@ -9,7 +9,7 @@ use crate::builder::compiler::{GCC};
 use crate::builder::build_context::{Build, Modes};
 use crate::ds::graph::{Graph};
 use crate::utils::logger::{init_logger, LogLevel, parse_log_level};
-use crate::utils::fs::{list_files};
+use crate::utils::fs::{recursive_list_files};
 
 // use std::fs::create_dir_all;
 // ? std
@@ -47,11 +47,18 @@ fn main() {
 
     // ! init graph nodes from list of files
     let mut nodes:Vec<Artifact> = vec![];
-    // let path_list:Vec<PathBuf> = recursive_list_files(Path::new("."), None)
-    let path_list:Vec<PathBuf> = list_files(Path::new("."), None)
+    // TODO: init /include dir to tell compiler where to find header files
+    const INCLUDE_DIR:&str = "./include";
+    let header_path_list:Vec<PathBuf> = recursive_list_files(Path::new(INCLUDE_DIR), None)
+    .expect("failed to list header files");
+    let source_path_list:Vec<PathBuf> = recursive_list_files(Path::new("./src"), None)
     .expect("failed to list files");
 
-    // println!("{:?}", path_list);
+    let mut path_list:Vec<PathBuf> = vec![];
+    path_list.extend(header_path_list);
+    path_list.extend(source_path_list);
+
+    println!("{:?}", path_list);
     for path in path_list  {
         // println!("{}", path.display());
         //    Artifact::new(path, metadata)
@@ -71,8 +78,6 @@ fn main() {
         }
     }
 
-    // TODO: initialize is_built for each artifacts
-
     // ! init target
     let target:Artifact =
     Artifact::new(
@@ -90,7 +95,13 @@ fn main() {
     println!("target={}", build_graph.nodes[target_index].path.display());
 
     // ! init build context
-    let mut build_context1:Build<GCC> = Build { compiler: GCC, mode: Modes::O0, graph: build_graph};
+    let mut build_context1:Build<GCC> =
+    Build {
+        compiler: GCC,
+        mode: Modes::O0,
+        graph: build_graph,
+        include_dir:INCLUDE_DIR.to_string()
+    };
 
     // ! run build on target
     build_context1.build(target_index);

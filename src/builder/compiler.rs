@@ -8,13 +8,13 @@ use crate::ds::graph::{Graph};
 use crate::{log_debug, log_error};
 
 pub trait Compiler {
-    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph);
+    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph, include_dir:&str);
     fn link(&self, extra_flags:&str, target_index: usize, graph:&mut Graph);
 }
 
 pub struct GCC;
 impl Compiler for GCC {
-    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph){
+    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph, include_dir:&str){
         use crate::utils::cache::{compute_file_hash, load_cache, save_cache};
 
         // Load cache (file: build/cache/build_cache.csv)
@@ -74,16 +74,17 @@ impl Compiler for GCC {
             let output_d_path_str = output_d_path.to_string_lossy().into_owned();
 
             // combine all args (extra flags, compile flag, source paths, target source, -o <out>)
-            let all_args: Vec<&str> =
-                std::iter::once(extra_flags)
-                .chain(std::iter::once(flag))
-                .chain(filepaths.iter().map(|s| s.as_str()))
-                .chain(std::iter::once(filename_full.as_ref()))
-                .chain(std::iter::once("-o")) // object file
-                .chain(std::iter::once(output_o_path_str.as_ref()))
-                .chain(std::iter::once("-MMD")) // dependancy list
-                .chain(std::iter::once("-MF"))
-                .chain(std::iter::once(output_d_path_str.as_ref()))
+            let all_args: Vec<String> =
+                std::iter::once(extra_flags.to_string())
+                .chain(std::iter::once(flag.to_string()))
+                .chain(std::iter::once(format!("-I{}",include_dir)))
+                .chain(filepaths.iter().map(|s| s.to_string()))
+                .chain(std::iter::once(filename_full))
+                .chain(std::iter::once("-o".to_string())) // object file
+                .chain(std::iter::once(output_o_path_str))
+                .chain(std::iter::once("-MMD".to_string())) // dependancy list
+                .chain(std::iter::once("-MF".to_string()))
+                .chain(std::iter::once(output_d_path_str))
                 .collect();
 
             // ! Log the command
