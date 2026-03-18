@@ -8,13 +8,13 @@ use crate::ds::graph::{Graph};
 use crate::{log_debug, log_error};
 
 pub trait Compiler {
-    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph, include_dir:&str);
+    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph, header_dirs:&Vec<String>);
     fn link(&self, extra_flags:&str, target_index: usize, graph:&mut Graph);
 }
 
 pub struct GCC;
 impl Compiler for GCC {
-    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph, include_dir:&str){
+    fn compile(&self, extra_flags:&str, target_index: usize, graph:&mut Graph, header_dirs:&Vec<String>){
         use crate::utils::cache::{compute_file_hash, load_cache, save_cache};
 
         // Load cache (file: build/cache/build_cache.csv)
@@ -77,7 +77,8 @@ impl Compiler for GCC {
             let all_args: Vec<String> =
                 std::iter::once(extra_flags.to_string())
                 .chain(std::iter::once(flag.to_string()))
-                .chain(std::iter::once(format!("-I{}",include_dir)))
+                // .chain(std::iter::once(format!("-I{}",include_dir)))
+                .chain(header_dirs.iter().map(|s| format!("-I{}",s)))
                 .chain(filepaths.iter().map(|s| s.to_string()))
                 .chain(std::iter::once(filename_full))
                 .chain(std::iter::once("-o".to_string())) // object file

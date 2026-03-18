@@ -53,12 +53,12 @@ pub struct Build<C: Compiler> {
     pub compiler: C,
     pub mode: Modes,
     pub graph: Graph,
-    pub include_dir: String
+    pub header_dirs: Vec<String>
 }
 impl<C: Compiler> Build<C> {
     pub fn compile(&mut self, target_index:usize) {
         let extra_flags:&str = self.mode.flag_value();
-        self.compiler.compile(extra_flags, target_index, &mut self.graph, &self.include_dir);
+        self.compiler.compile(extra_flags, target_index, &mut self.graph, &self.header_dirs);
     }
     pub fn link(&mut self, target_index:usize){
         let extra_flags:&str = self.mode.flag_value();

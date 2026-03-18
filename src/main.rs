@@ -58,7 +58,7 @@ fn main() {
     path_list.extend(header_path_list);
     path_list.extend(source_path_list);
 
-    println!("{:?}", path_list);
+    // println!("{:?}", path_list);
     for path in path_list  {
         // println!("{}", path.display());
         //    Artifact::new(path, metadata)
@@ -88,7 +88,7 @@ fn main() {
     let target_index:usize = build_graph.nodes.len()-1;
     let target:&Artifact = &build_graph.nodes[target_index];
 
-    println!("{:?}", target.dependancy_indexes);
+    // println!("{:?}", target.dependancy_indexes);
     for &el in &target.dependancy_indexes {
         println!("{}", build_graph.nodes[el].path.display());
     }
@@ -100,7 +100,7 @@ fn main() {
         compiler: GCC,
         mode: Modes::O0,
         graph: build_graph,
-        include_dir:INCLUDE_DIR.to_string()
+        header_dirs:vec![INCLUDE_DIR.to_string()]
     };
 
     // ! run build on target
