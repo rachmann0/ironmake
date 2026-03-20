@@ -49,6 +49,7 @@ fn main() {
     let mut nodes:Vec<Artifact> = vec![];
     // TODO: init /include dir to tell compiler where to find header files
     const INCLUDE_DIR:&str = "./include";
+    // const INCLUDE_DIR:&str = "./include/ironcore";
     let header_path_list:Vec<PathBuf> = recursive_list_files(Path::new(INCLUDE_DIR), None)
     .expect("failed to list header files");
     let source_path_list:Vec<PathBuf> = recursive_list_files(Path::new("./src"), None)
@@ -62,7 +63,7 @@ fn main() {
     for path in path_list  {
         // println!("{}", path.display());
         //    Artifact::new(path, metadata)
-        let artifact: Artifact = Artifact::new(path, false, vec![]);
+        let artifact: Artifact = Artifact::new(path, vec![]);
         // let node:Node = Node::new(artifact, target);
         nodes.push(artifact);
     }
@@ -82,7 +83,7 @@ fn main() {
     let target:Artifact =
     Artifact::new(
         PathBuf::from("main.exe"),
-        false, dependancy_indexes,
+        dependancy_indexes,
     );
     build_graph.nodes.push(target);
     let target_index:usize = build_graph.nodes.len()-1;

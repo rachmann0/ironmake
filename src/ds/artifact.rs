@@ -56,15 +56,8 @@ pub struct Artifact {
     pub path: PathBuf,
     /// Type of artifact (e.g., "binary", "object", "library", "package")
     pub artifact_type: ArtifactType,
-    /// Timestamp of creation
-    // pub created_at: SystemTime,
-    // /// Optional metadata (like compiler flags, source files, hash)
-    // pub metadata: Option<String>,
-
-    // pub dependancies: Vec<Artifact>,
+    /// index of dependancies in graph data structure
     pub dependancy_indexes: Vec<usize>,
-    // pub target: Option<Artifact>,
-    pub is_built:bool
 }
 
 impl Artifact {
@@ -72,10 +65,6 @@ impl Artifact {
     // pub fn new(path: PathBuf, artifact_type: ArtifactType, metadata: Option<String>) -> Self {
     pub fn new(
         path: PathBuf,
-        // metadata: Option<String>,
-        // dependancies: Vec<Artifact>,
-        // dependancies2: Vec<usize>,
-        is_built:bool,
         dependancy_indexes: Vec<usize>,
 
     ) -> Self {
@@ -86,12 +75,7 @@ impl Artifact {
                 default => default
             },
             path,
-            // created_at: SystemTime::now(),
-            // metadata,
-            // dependancies,
             dependancy_indexes,
-            // target,
-            is_built,
         }
     }
 

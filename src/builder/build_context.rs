@@ -82,16 +82,15 @@ impl<C: Compiler> Build<C> {
             
         } else {
             for dep_idx in dependancy_indexes {
-                let built = self.graph.nodes[dep_idx].is_built;
-                if !built {
+                // let built = self.graph.nodes[dep_idx].is_built;
+                // if !built {
                     self.build(dep_idx);
-                }
+                // }
             }
-            // compile target after dependencies
-            if !self.graph.nodes[target_index].is_built {
-                // self.compile2(target_index);
+            // link target after dependencies
+            // if !self.graph.nodes[target_index].is_built {
                 self.link(target_index);
-            }
+            // }
         }
     }
 }

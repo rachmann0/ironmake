@@ -43,7 +43,7 @@ impl Compiler for GCC {
                 if cached == &current_hash && !current_hash.is_empty() {
                     log_debug!("Cache hit for {}: skipping compile", filename_full);
                     if let Some(target_mut) = graph.nodes.get_mut(target_index) {
-                        target_mut.is_built = true;
+                        // target_mut.is_built = true;
                         let mut new_path = PathBuf::from(BUILD_DIR);
                         new_path.push(&filename_lossy_owned);
                         new_path.set_extension("o");
@@ -112,7 +112,7 @@ impl Compiler for GCC {
                         }
 
                         if let Some(target_mut) = graph.nodes.get_mut(target_index) {
-                            target_mut.is_built = true;
+                            // target_mut.is_built = true;
                             // change path to build/<filename>.o
                                 let mut new_path = PathBuf::from(BUILD_DIR);
                                 new_path.push(&filename_lossy_owned);
@@ -177,7 +177,7 @@ impl Compiler for GCC {
                 Ok(output) =>{
                     if output.status.success() {
                         if let Some(target_mut) = graph.nodes.get_mut(target_index) {
-                            target_mut.is_built = true;
+                            // target_mut.is_built = true;
                             // set linked output into build/<filename>
                             target_mut.path = output_path.clone();
                             // set artifact type to Binary for linked executables
