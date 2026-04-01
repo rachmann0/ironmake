@@ -94,6 +94,7 @@ fn main() {
         println!("{}", build_graph.nodes[el].path.display());
     }
     println!("target={}", build_graph.nodes[target_index].path.display());
+    println!("dependancy_indexes={:?}", build_graph.nodes[target_index].dependancy_indexes);
 
     // ! init build context
     let mut build_context1:Build<GCC> =
